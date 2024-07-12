@@ -33,7 +33,7 @@ func listAccountRoles(cli *sso.Client, accessToken, accountID string) ([]string,
 		return nil, err
 	}
 
-	roles := make([]string, 0, len(out.RoleList))
+	roles := make([]string, len(out.RoleList))
 	for i, role := range out.RoleList {
 		roles[i] = aws.ToString(role.RoleName)
 	}
