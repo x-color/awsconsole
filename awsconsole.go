@@ -47,7 +47,7 @@ func GenerateAccountsRolesFile(profileName string) error {
 func updateInstancesCache(instance Instance) error {
 	cache, err := loadStore()
 	if err != nil {
-		return err
+		cache = &Store{Instances: []Instance{}}
 	}
 	cache.addAndUpdateInstance(instance)
 
