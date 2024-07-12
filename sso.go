@@ -51,7 +51,7 @@ func (a AccountRole) String() string {
 }
 
 func (a AccountRole) URL(baseURL string) string {
-	return fmt.Sprintf("%s?region=%s", baseURL, a.AccountID)
+	return fmt.Sprintf("%s/#/console?account_id=%s&role_name=%s", baseURL, a.AccountID, a.RoleName)
 }
 
 func parseAccountRole(s string) AccountRole {
