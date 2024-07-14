@@ -7,21 +7,20 @@ import (
 	"runtime"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
 	"github.com/aws/aws-sdk-go-v2/service/sso"
 	fzf "github.com/junegunn/fzf/src"
 )
 
 func GenerateAccountsRolesFile(profileName string) error {
-	url, err := extractSSOStartURL(config.DefaultSharedConfigFilename(), profileName)
+	info, err := extractSSOInfo(config.DefaultSharedConfigFilename(), profileName)
+	if err != nil {
+		return err
+	}
+	fp, err := cachedTokenFilepath(info)
 	if err != nil {
 		return err
 	}
 
-	fp, err := ssocreds.StandardCachedTokenFilepath(url)
-	if err != nil {
-		return err
-	}
 	accessToken, err := extractAccessToken(fp)
 	if err != nil {
 		return err
@@ -38,7 +37,7 @@ func GenerateAccountsRolesFile(profileName string) error {
 	}
 
 	instance := Instance{
-		SsoURL:       url,
+		SsoURL:       info.url,
 		AccountRoles: ar,
 	}
 	return updateInstancesCache(instance)
