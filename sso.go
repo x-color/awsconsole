@@ -10,34 +10,50 @@ import (
 )
 
 func listAccounts(cli *sso.Client, accessToken string) (map[string]string, error) {
-	out, err := cli.ListAccounts(context.Background(), &sso.ListAccountsInput{
-		AccessToken: aws.String(accessToken),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	accounts := make(map[string]string)
-	for _, account := range out.AccountList {
-		accounts[aws.ToString(account.AccountId)] = aws.ToString(account.AccountName)
+	var nextToken *string
+	for {
+		out, err := cli.ListAccounts(context.Background(), &sso.ListAccountsInput{
+			AccessToken: aws.String(accessToken),
+			NextToken:   nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, account := range out.AccountList {
+			accounts[aws.ToString(account.AccountId)] = aws.ToString(account.AccountName)
+		}
+
+		if out.NextToken == nil {
+			return accounts, nil
+		}
+		nextToken = out.NextToken
 	}
-	return accounts, nil
 }
 
 func listAccountRoles(cli *sso.Client, accessToken, accountID string) ([]string, error) {
-	out, err := cli.ListAccountRoles(context.Background(), &sso.ListAccountRolesInput{
-		AccessToken: aws.String(accessToken),
-		AccountId:   aws.String(accountID),
-	})
-	if err != nil {
-		return nil, err
-	}
+	roles := make([]string, 0)
+	var nextToken *string
+	for {
+		out, err := cli.ListAccountRoles(context.Background(), &sso.ListAccountRolesInput{
+			AccessToken: aws.String(accessToken),
+			AccountId:   aws.String(accountID),
+			NextToken:   nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	roles := make([]string, len(out.RoleList))
-	for i, role := range out.RoleList {
-		roles[i] = aws.ToString(role.RoleName)
+		for _, role := range out.RoleList {
+			roles = append(roles, aws.ToString(role.RoleName))
+		}
+
+		if out.NextToken == nil {
+			return roles, nil
+		}
+		nextToken = out.NextToken
 	}
-	return roles, nil
 }
 
 type AccountRole struct {
