@@ -12,7 +12,7 @@ fmt: ## Format code
 lint: ## Run linter
 	@go vet ./...
 
-build: ## Build docker images for components
+build: ## Build the binary
 	@go build -o awsconsole ./cmd/awsconsole/main.go
 
 install: ## Install the binary
