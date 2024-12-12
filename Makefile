@@ -12,6 +12,9 @@ fmt: ## Format code
 lint: ## Run linter
 	@go vet ./...
 
+test: ## Run tests
+	@go test ./...
+
 build: ## Build the binary
 	@go build -o awsconsole ./cmd/awsconsole/main.go
 
