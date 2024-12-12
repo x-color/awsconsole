@@ -3,6 +3,8 @@ package awsconsole
 import (
 	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func Test_extractAccessToken(t *testing.T) {
@@ -64,7 +66,7 @@ func Test_extractAccessToken(t *testing.T) {
 	}
 }
 
-func Test_extractSSOStartURL(t *testing.T) {
+func Test_extractSSOInfo(t *testing.T) {
 	type args struct {
 		profileName string
 	}
@@ -72,11 +74,11 @@ func Test_extractSSOStartURL(t *testing.T) {
 		name    string
 		args    args
 		content string
-		want    string
+		want    ssoInfo
 		wantErr bool
 	}{
 		{
-			name: "Extract SSO start URL from AWS config file",
+			name: "Extract SSO info from AWS config file",
 			args: args{
 				profileName: "user1",
 			},
@@ -92,11 +94,14 @@ output = json
 sso_region = us-east-1
 sso_start_url = https://my-sso-portal.awsapps.com/start
 sso_registration_scopes = sso:account:access`,
-			want:    "https://my-sso-portal.awsapps.com/start",
+			want: ssoInfo{
+				url:         "https://my-sso-portal.awsapps.com/start",
+				sessionName: "my-sso",
+			},
 			wantErr: false,
 		},
 		{
-			name: "Extract SSO start URL from legacy AWS config file",
+			name: "Extract SSO info from legacy AWS config file",
 			args: args{
 				profileName: "default",
 			},
@@ -109,7 +114,10 @@ sso_role_name = readOnly
 region = us-west-2
 output = text
 `,
-			want:    "https://my-sso-portal.awsapps.com/start",
+			want: ssoInfo{
+				url:         "https://my-sso-portal.awsapps.com/start",
+				sessionName: "",
+			},
 			wantErr: false,
 		},
 		{
@@ -129,7 +137,7 @@ output = json
 sso_region = us-east-1
 sso_start_url = https://my-sso-portal.awsapps.com/start
 sso_registration_scopes = sso:account:access`,
-			want:    "",
+			want:    ssoInfo{},
 			wantErr: true,
 		},
 		{
@@ -148,7 +156,7 @@ output = json
 [sso-session my-sso]
 sso_region = us-east-1
 sso_registration_scopes = sso:account:access`,
-			want:    "",
+			want:    ssoInfo{},
 			wantErr: true,
 		},
 		{
@@ -159,7 +167,7 @@ sso_registration_scopes = sso:account:access`,
 			content: `
 sso_start_url = https://my-sso-portal.awsapps.com/start
 `,
-			want:    "",
+			want:    ssoInfo{},
 			wantErr: true,
 		},
 	}
@@ -176,13 +184,13 @@ sso_start_url = https://my-sso-portal.awsapps.com/start
 				t.Fatalf("temp file write: %v", err)
 			}
 
-			got, err := extractSSOStartURL(f.Name(), tt.args.profileName)
+			got, err := extractSSOInfo(f.Name(), tt.args.profileName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("extractSSOStartURL() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("extractSSOStartURL() = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(ssoInfo{})); diff != "" {
+				t.Errorf("extractSSOStartURL() mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}

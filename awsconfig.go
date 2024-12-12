@@ -66,32 +66,6 @@ func extractSSOInfo(filePath string, profileName string) (ssoInfo, error) {
 	}, nil
 }
 
-func extractSSOStartURL(filePath string, profileName string) (string, error) {
-	cfg, err := ini.Load(filePath)
-	if err != nil {
-		return "", err
-	}
-
-	sectionName := "default"
-	if profileName != "default" {
-		sectionName = "profile " + profileName
-	}
-
-	profile := cfg.Section(sectionName)
-	sessionName := profile.Key("sso_session").String()
-
-	url := cfg.Section("sso-session " + sessionName).Key("sso_start_url").String()
-	if url == "" {
-		url = profile.Key("sso_start_url").String()
-	}
-
-	if url == "" {
-		return "", fmt.Errorf("sso_start_url and sso_session for %q profile are not found", profileName)
-	}
-
-	return url, nil
-}
-
 func cachedTokenFilepath(info ssoInfo) (string, error) {
 	if info.sessionName == "" {
 		return ssocreds.StandardCachedTokenFilepath(info.url)

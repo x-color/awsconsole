@@ -54,7 +54,7 @@ func updateInstancesCache(instance Instance) error {
 }
 
 func Jump(profileName string) error {
-	url, err := extractSSOStartURL(config.DefaultSharedConfigFilename(), profileName)
+	info, err := extractSSOInfo(config.DefaultSharedConfigFilename(), profileName)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func Jump(profileName string) error {
 		return err
 	}
 
-	accountRoles := store.findInstance(url).AccountRoles
+	accountRoles := store.findInstance(info.url).AccountRoles
 	list := make([]string, len(accountRoles))
 	for i, ar := range accountRoles {
 		list[i] = ar.String()
@@ -72,7 +72,7 @@ func Jump(profileName string) error {
 
 	var jumpErr error
 	err = fuzzyFinderForAccountRoles(list, func(s string) {
-		if err := jump(parseAccountRole(s).URL(url)); err != nil {
+		if err := jump(parseAccountRole(s).URL(info.url)); err != nil {
 			jumpErr = err
 		}
 	})
