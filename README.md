@@ -43,7 +43,7 @@ You can simplify accessing the AWS Management Console by an [alias](https://docs
 
 If you add the following setting to your `~/.aws/cli/alias`,
 
-```toml
+```ini
 [toplevel]
 console = !f() {
     awsconsole $@
